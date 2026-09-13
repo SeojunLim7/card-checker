@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>이거 교통카드 맞아?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --surface-sunken: #f0ede5;
+    --text: #1b1a17;
+    --text-muted: #6e685f;
+    --border: #e6e1d5;
+    --accent: #0f9e96;
+    --accent-strong: #086a64;
+    --accent-soft: #dff3f1;
+    --on-accent: #ffffff;
+    --success: #1f9d55;
+    --success-soft: #e3f6e9;
+    --danger: #cf4436;
+    --danger-soft: #fbe8e5;
+    --warn: #b8791a;
+    --warn-soft: #f7ecd9;
+    --shadow: 0 1px 2px rgba(27, 26, 23, 0.04), 0 8px 24px -12px rgba(27, 26, 23, 0.18);
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 9px;
+    color-scheme: light dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14181a;
+      --surface: #1b2124;
+      --surface-sunken: #21282b;
+      --text: #eeece6;
+      --text-muted: #9b968c;
+      --border: #2b3336;
+      --accent: #3ddbd0;
+      --accent-strong: #7fe9e0;
+      --accent-soft: #1c3634;
+      --on-accent: #06201e;
+      --success: #4bc27e;
+      --success-soft: #163524;
+      --danger: #e2685a;
+      --danger-soft: #3a201d;
+      --warn: #e0b459;
+      --warn-soft: #3a2f18;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 28px -12px rgba(0, 0, 0, 0.55);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  [hidden] { display: none !important; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    padding: 32px 20px 48px;
+    display: flex;
+    justify-content: center;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  header { display: flex; flex-direction: column; gap: 8px; }
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    color: var(--accent-strong);
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-family: "Black Han Sans", "Noto Sans KR", sans-serif;
+    font-weight: 400;
+    font-size: clamp(28px, 7vw, 34px);
+    line-height: 1.25;
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .sub {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .dropzone {
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-sunken);
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dropzone:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .dropzone.drag-over {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .dz-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+  }
+
+  .dz-empty svg { width: 34px; height: 34px; opacity: 0.55; }
+
+  .dz-empty p { margin: 0; font-size: 13.5px; max-width: 26ch; line-height: 1.55; }
+
+  .preview {
+    max-width: 100%;
+    max-height: 320px;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+    transition: transform 0.08s ease, opacity 0.15s ease, background-color 0.15s ease;
+  }
+
+  .btn:active { transform: scale(0.98); }
+
+  .btn-ghost {
+    background: var(--surface-sunken);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--on-accent);
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .btn-primary:not(:disabled):hover { background: var(--accent-strong); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent-strong);
+    border: 1px solid var(--border);
+    width: 100%;
+  }
+
+  .hint {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .hint.error { color: var(--danger); }
+
+  .result { align-items: stretch; }
+
+  .result-loading-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border);
+    border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation-duration: 2.4s; }
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .verdict {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+  }
+
+  .verdict.yes { background: var(--success-soft); }
+  .verdict.no { background: var(--danger-soft); }
+  .verdict.unsure { background: var(--warn-soft); }
+
+  .verdict-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .verdict.yes .verdict-icon { background: var(--success); }
+  .verdict.no .verdict-icon { background: var(--danger); }
+  .verdict.unsure .verdict-icon { background: var(--warn); color: #2a1f08; }
+
+  .verdict-text { display: flex; flex-direction: column; gap: 2px; }
+
+  .verdict-title {
+    font-family: "Black Han Sans", sans-serif;
+    font-weight: 400;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+
+  .verdict.yes .verdict-title { color: var(--success); }
+  .verdict.no .verdict-title { color: var(--danger); }
+  .verdict.unsure .verdict-title { color: var(--warn); }
+
+  .verdict-sub { font-size: 12.5px; color: var(--text-muted); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--surface-sunken);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .reason {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text);
+    padding: 2px;
+    margin: 0;
+  }
+
+  details.info {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+  }
+
+  details.info summary {
+    cursor: pointer;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  details.info summary::-webkit-details-marker { display: none; }
+
+  details.info summary::after {
+    content: "+";
+    color: var(--text-muted);
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+  details.info[open] summary::after { content: "\2212"; }
+
+  .info-body {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .brand-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    padding: 0 8px;
+  }
+
+  @media (max-width: 380px) {
+    .actions { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">AI 이미지 판별 · Claude Vision</span>
+    <h1>이거 교통카드 맞아?</h1>
+    <p class="sub">캐시비·티머니·레일플러스 같은 교통카드 브랜드가 있으면 선불/후불이나 어디서 발급됐는지와 상관없이 확인해드려요. 편의점 판매용 카드는 물론, 후불 교통 기능이 있는 은행 체크카드도 포함돼요.</p>
+  </header>
+
+  <section class="panel">
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="교통카드 사진 올리기">
+      <div class="dz-empty" id="dzEmpty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.2"></rect><line x1="2.5" y1="10" x2="21.5" y2="10"></line><line x1="6" y1="14.3" x2="10.5" y2="14.3"></line></svg>
+        <p>카드 전체가 잘 보이도록<br>사진을 끌어다 놓거나 올려주세요</p>
+      </div>
+      <img class="preview" id="preview" alt="업로드한 카드 사진" hidden>
+    </div>
+
+    <div class="actions" id="pickActions">
+      <label class="btn btn-ghost" for="cameraInput">📷 카메라로 촬영</label>
+      <label class="btn btn-ghost" for="fileInput">🖼️ 사진 선택</label>
+    </div>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+    <input type="file" id="fileInput" accept="image/*" hidden>
+
+    <button class="btn btn-primary" id="checkBtn" disabled>카드 확인하기</button>
+    <p class="hint" id="statusHint" hidden></p>
+  </section>
+
+  <section class="panel result" id="resultPanel" hidden aria-live="polite"></section>
+
+  <details class="info">
+    <summary>어떻게 판별하나요?</summary>
+    <div class="info-body">
+      사진을 서버로 보내 AI(Claude Vision)가 카드에 있는 로고와 문구를 보고 판단해요. 편의점 판매용 선불카드든, Tmoney/캐시비 후불 기능이 있는 은행 체크카드든, 교통카드 브랜드 로고만 있으면 전부 "예"로 판별돼요.
+      <div class="brand-list">
+        <span class="chip">캐시비 Cashbee</span>
+        <span class="chip">티머니 T-money</span>
+        <span class="chip">레일플러스</span>
+        <span class="chip">원카드 ONE Card</span>
+        <span class="chip">하나로카드</span>
+        <span class="chip">이즐 e-Z</span>
+      </div>
+    </div>
+  </details>
+
+  <footer>사진은 판별을 위해 서버와 AI로 전송되며 저장되지 않아요. AI 판별이라 드물게 틀릴 수 있으니 참고용으로 써주세요.</footer>
+</div>
+
+<script>
+  (function () {
+    var dropzone = document.getElementById('dropzone');
+    var dzEmpty = document.getElementById('dzEmpty');
+    var preview = document.getElementById('preview');
+    var cameraInput = document.getElementById('cameraInput');
+    var fileInput = document.getElementById('fileInput');
+    var checkBtn = document.getElementById('checkBtn');
+    var statusHint = document.getElementById('statusHint');
+    var resultPanel = document.getElementById('resultPanel');
+
+    // 프론트엔드에서 이 경로로 POST 요청을 보내요.
+    // server.js를 쓰면 같은 도메인의 /api/check-card 그대로 두면 되고,
+    // 백엔드가 다른 도메인에 있다면 여기를 전체 URL로 바꿔주세요.
+    var API_ENDPOINT = '/api/check-card';
+
+    var selectedFile = null;
+    var previewUrl = null;
+    var inFlight = false;
+
+    function setHint(text, isError) {
+      if (!text) {
+        statusHint.hidden = true;
+        statusHint.textContent = '';
+        return;
+      }
+      statusHint.hidden = false;
+      statusHint.textContent = text;
+      statusHint.classList.toggle('error', !!isError);
+    }
+
+    function revokePreview() {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+      }
+    }
+
+    function setFile(file) {
+      if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+        setHint('이미지 파일만 올릴 수 있어요.', true);
+        return;
+      }
+      revokePreview();
+      selectedFile = file;
+      previewUrl = URL.createObjectURL(file);
+      preview.src = previewUrl;
+      preview.hidden = false;
+      dzEmpty.hidden = true;
+      checkBtn.disabled = false;
+      resultPanel.hidden = true;
+      resultPanel.innerHTML = '';
+      setHint(null);
+    }
+
+    dropzone.addEventListener('click', function () { fileInput.click(); });
+    dropzone.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+    dropzone.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      dropzone.classList.add('drag-over');
+    });
+    dropzone.addEventListener('dragleave', function () { dropzone.classList.remove('drag-over'); });
+    dropzone.addEventListener('drop', function (e) {
+      e.preventDefault();
+      dropzone.classList.remove('drag-over');
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) setFile(f);
+    });
+
+    cameraInput.addEventListener('change', function () {
+      if (cameraInput.files && cameraInput.files[0]) setFile(cameraInput.files[0]);
+      cameraInput.value = '';
+    });
+    fileInput.addEventListener('change', function () {
+      if (fileInput.files && fileInput.files[0]) setFile(fileInput.files[0]);
+      fileInput.value = '';
+    });
+
+    // 업로드 전, 캔버스로 가장 긴 변 1280px / JPEG 품질 0.85로 줄여서
+    // 전송량을 줄이고 서버 body 크기 제한 문제를 피해요.
+    function resizeToJpeg(file, maxSide) {
+      return new Promise(function (resolve, reject) {
+        var img = new Image();
+        img.onload = function () {
+          var scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+          var w = Math.max(1, Math.round(img.width * scale));
+          var h = Math.max(1, Math.round(img.height * scale));
+          var canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob(function (blob) {
+            if (!blob) return reject(new Error('resize failed'));
+            var reader = new FileReader();
+            reader.onload = function () {
+              var dataUrl = reader.result;
+              var base64 = dataUrl.split(',')[1];
+              resolve({ base64: base64, mediaType: 'image/jpeg' });
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          }, 'image/jpeg', 0.85);
+        };
+        img.onerror = reject;
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function renderLoading(label) {
+      resultPanel.hidden = false;
+      resultPanel.innerHTML =
+        '<div class="result-loading-row"><span class="spinner" aria-hidden="true"></span><span>' + escapeHtml(label) + '</span></div>';
+    }
+
+    function renderError(msg, allowRetry) {
+      resultPanel.hidden = false;
+      var html = '<p class="hint error" style="text-align:left;margin:0;">' + escapeHtml(msg) + '</p>';
+      if (allowRetry) {
+        html += '<button class="btn btn-secondary" id="retryBtn" style="margin-top:10px;">다시 시도하기</button>';
+      }
+      resultPanel.innerHTML = html;
+      var retryBtn = document.getElementById('retryBtn');
+      if (retryBtn) retryBtn.addEventListener('click', runCheck);
+    }
+
+    function renderResult(data) {
+      var isYes = data && data.is_transit_card === true;
+      var confidenceLabel = { high: '높은 확신', medium: '보통 확신', low: '낮은 확신' }[data && data.confidence] || null;
+      var brand = data && data.detected_brand ? String(data.detected_brand) : null;
+      var reason = data && data.reason ? String(data.reason) : '';
+
+      var html = '';
+      html += '<div class="verdict ' + (isYes ? 'yes' : 'no') + '">';
+      html += '  <div class="verdict-icon">' + (isYes ? '✓' : '✕') + '</div>';
+      html += '  <div class="verdict-text">';
+      html += '    <span class="verdict-title">' + (isYes ? '교통카드예요' : '교통카드가 아니에요') + '</span>';
+      html += '    <span class="verdict-sub">AI 판별 결과 (참고용)</span>';
+      html += '  </div>';
+      html += '</div>';
+
+      if (brand || confidenceLabel) {
+        html += '<div class="chips">';
+        if (brand) html += '<span class="chip">' + escapeHtml(brand) + '</span>';
+        if (confidenceLabel) html += '<span class="chip">' + confidenceLabel + '</span>';
+        html += '</div>';
+      }
+
+      if (reason) html += '<p class="reason">' + escapeHtml(reason) + '</p>';
+
+      html += '<button class="btn btn-secondary" id="resetBtn" style="margin-top:6px;">다른 사진으로 다시 확인</button>';
+
+      resultPanel.hidden = false;
+      resultPanel.innerHTML = html;
+
+      var resetBtn = document.getElementById('resetBtn');
+      if (resetBtn) resetBtn.addEventListener('click', resetAll);
+    }
+
+    function resetAll() {
+      revokePreview();
+      selectedFile = null;
+      preview.hidden = true;
+      preview.src = '';
+      dzEmpty.hidden = false;
+      checkBtn.disabled = true;
+      resultPanel.hidden = true;
+      resultPanel.innerHTML = '';
+      setHint(null);
+    }
+
+    function runCheck() {
+      if (inFlight || !selectedFile) return;
+      inFlight = true;
+      checkBtn.disabled = true;
+      renderLoading('사진 준비 중…');
+
+      resizeToJpeg(selectedFile, 1280)
+        .then(function (img) {
+          renderLoading('AI가 카드를 확인하고 있어요…');
+          return fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64: img.base64, mediaType: img.mediaType }),
+          });
+        })
+        .then(function (res) {
+          return res.json().then(function (body) {
+            if (!res.ok) {
+              var err = new Error((body && body.error) || ('요청 실패 (' + res.status + ')'));
+              throw err;
+            }
+            return body;
+          });
+        })
+        .then(function (data) {
+          renderResult(data);
+        })
+        .catch(function (err) {
+          console.error(err);
+          renderError('확인 중 문제가 발생했어요: ' + (err && err.message ? err.message : '알 수 없는 오류') + '. 잠시 후 다시 시도해주세요.', true);
+        })
+        .finally(function () {
+          inFlight = false;
+          checkBtn.disabled = !selectedFile;
+        });
+    }
+
+    checkBtn.addEventListener('click', runCheck);
+  })();
+</script>
+</body>
+</html>
